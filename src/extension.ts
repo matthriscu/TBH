@@ -83,9 +83,9 @@ async function optimize(caller: GptCaller, code: string): Promise<string> {
 
 async function add_comments(caller: GptCaller, code: string, language: string): Promise<string> {
 	const res = await caller.askChatGPT("Could you add proper comments to the corrected code above? And also add types to parameters")
-	const regex = /```([\s\S]*?)```/g
-	const markdown_code = res.match(regex)
-	return markdown_code
+	const regex = /```([\s\S]*?)```/g;
+	const markdown_code = res.match(regex);
+	return markdown_code;
 }
 
 async function find_complexity(caller: GptCaller, code: string): Promise<string> {
@@ -160,16 +160,13 @@ export function activate(context: vscode.ExtensionContext) {
 			fixCode = fixCode.toString().replaceAll("`", "");
 			fixCode = fixCode.toString().replace(language, "");
 
-			const textDocumentShowOptions: vscode.TextDocumentShowOptions = {
-				preview: true,
-			};
-
 			dstUri = vscode.Uri.file(path.join(path.dirname(document.uri.path), "tmp.txt"));
 			diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
 			fileName = document.uri;
 
-			await write_file(dstUri, diffTxt);
-            await vscode.commands.executeCommand("vscode.diff", document.uri, dstUri, 'DIFF'); 	
+			await write_file(dstUri!, diffTxt);
+			dstUri = (await vscode.workspace.openTextDocument(path.join(path.dirname(document.uri.path), "tmp.txt"))).uri;
+            vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF'); 	
         }
 	});
     
