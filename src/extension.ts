@@ -22,8 +22,10 @@ export function activate(context: vscode.ExtensionContext) {
             const document = editor.document;
             const selection = editor.selection;
             console.log(document.getText(selection));
-            const doc = await vscode.workspace.openTextDocument({ content: `Hello world` });
-            vscode.commands.executeCommand("vscode.diff", document.uri, doc.uri, 'DIFF');
+
+            const src = await vscode.workspace.openTextDocument({ content: document.getText(selection) });
+            const dst = await vscode.workspace.openTextDocument({ content: 'Hello world' });
+            vscode.commands.executeCommand("vscode.diff", src.uri, dst.uri, 'DIFF');
             // editor.edit(editBuilder => {
             //     // editBuilder.replace(selection, func(document, selection));
             //     vscode.commands.executeCommand("vscode.diff", selection, func(document, selection));
