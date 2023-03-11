@@ -2,30 +2,27 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 import { TextEncoder } from 'util';
 
 const { Configuration, OpenAIApi } = require("openai");
 
-let editorDocUri: string | undefined;
 let diffTxt: string | undefined;
-let fileName: string | undefined;
+let dstUri : vscode.Uri | undefined;
+let fileName: vscode.Uri | undefined;
 
-async function write_file(name : string, content: string) {
-	const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-	if (!workspaceFolder) {
-		vscode.window.showErrorMessage('No workspace folder open.');
-		return;
-	}
 
-	const fileName = name;
-	const fileNameUri = await vscode.workspace.openTextDocument(fileName);
+async function close_opened_diffs() {
+	vscode.workspace.fs.delete(dstUri!);
+};
 
-	vscode.workspace.fs.writeFile(fileNameUri.uri, new TextEncoder().encode(content)).then(() => {
+async function write_file(fileName : vscode.Uri, content: string) {
+	
+	vscode.workspace.fs.writeFile(fileName, new TextEncoder().encode(content)).then(() => {
 		vscode.window.showInformationMessage(`File created: ${fileName}`);
 	}, (err) => {
 		vscode.window.showErrorMessage(`Failed to create file: ${err.message}`);
 	});
-
 }
 
 let fibo =
@@ -105,7 +102,7 @@ async function check_code(caller: GptCaller, code : string, language : string) {
 
 	const response2 = await add_comments(caller, response1, language);
 	// const response3 = await find_complexity(caller, response2)
-	return response2
+	return response2;
 }
 
 // This method is called when your extension is activated
@@ -129,8 +126,8 @@ export function activate(context: vscode.ExtensionContext) {
         // editor.edit((editBuilder) => {
         //     editBuilder.replace(editor.selection, text);
         // });
-		console.log("tessst");
 		write_file(fileName!, diffTxt!);
+		close_opened_diffs();
 
         // vscode.window.visibleTextEditors.forEach(editor => {
         //   console.log(editor.document.uri.toString());
@@ -147,7 +144,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand('chatgpt-code-analyzer.helloWorld', async () => {
 	
 		let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
-		if (apiKey == "") {
+		if (apiKey === "") {
 			console.log("You need to provide an API Key");
 		}
 
@@ -160,7 +157,6 @@ export function activate(context: vscode.ExtensionContext) {
 			console.log(language);
 
 			let fixCode : string = await check_code(caller, document.getText(selection), language);
-			console.log("code is" + fixCode);
 			fixCode = fixCode.toString().replaceAll("`", "");
 			fixCode = fixCode.toString().replace(language, "");
 
@@ -168,16 +164,12 @@ export function activate(context: vscode.ExtensionContext) {
 				preview: true,
 			};
 
-			diffTxt =  document.getText().replace(document.getText(selection).toString(), fixCode);
-			fileName = document.fileName;
+			dstUri = vscode.Uri.file(path.join(path.dirname(document.uri.path), "tmp.txt"));
+			diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
+			fileName = document.uri;
 
-            const src = await vscode.workspace.openTextDocument({ content: document.getText()});
-            const dst = await vscode.workspace.openTextDocument({ content: diffTxt });
-            vscode.commands.executeCommand("vscode.diff", src.uri, dst!.uri, 'DIFF'); 	
-            // editor.edit(editBuilder => {
-            //     // editBuilder.replace(selection, func(document, selection));
-            //     vscode.commands.executeCommand("vscode.diff", selection, func(document, selection));
-            // });
+			await write_file(dstUri, diffTxt);
+            await vscode.commands.executeCommand("vscode.diff", document.uri, dstUri, 'DIFF'); 	
         }
 	});
     
