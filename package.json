@@ -17,7 +17,16 @@
         "command": "chatgpt-code-analyzer.helloWorld",
         "title": "Hello World"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Chat-GPT API-Key",
+      "properties": {
+        "chat-gpt" : {
+          "type" : "string",
+          "description": "Please enter your OpenAI key in order to use the plugin"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
