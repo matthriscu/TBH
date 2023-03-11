@@ -7,8 +7,10 @@ import { TextEncoder } from 'util';
 const { Configuration, OpenAIApi } = require("openai");
 
 let editorDocUri: string | undefined;
+let diffTxt: string | undefined;
+let fileName: string | undefined;
 
-function write_file(name : string, content: string) {
+async function write_file(name : string, content: string) {
 	const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
 	if (!workspaceFolder) {
 		vscode.window.showErrorMessage('No workspace folder open.');
@@ -16,9 +18,9 @@ function write_file(name : string, content: string) {
 	}
 
 	const fileName = name;
-	const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, fileName);
+	const fileNameUri = await vscode.workspace.openTextDocument(fileName);
 
-	vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(content)).then(() => {
+	vscode.workspace.fs.writeFile(fileNameUri.uri, new TextEncoder().encode(content)).then(() => {
 		vscode.window.showInformationMessage(`File created: ${fileName}`);
 	}, (err) => {
 		vscode.window.showErrorMessage(`Failed to create file: ${err.message}`);
@@ -121,23 +123,24 @@ export function activate(context: vscode.ExtensionContext) {
     const editor = vscode.window.activeTextEditor;
 
     if (editor) {
-        const text = 'New text to replace the selection with';
 
         // vscode.commands.executeCommand('workbench.action.closeActiveEditor', { force: true });
 
         // editor.edit((editBuilder) => {
         //     editBuilder.replace(editor.selection, text);
         // });
+		console.log("tessst");
+		write_file(fileName!, diffTxt!);
 
-        vscode.window.visibleTextEditors.forEach(editor => {
-          console.log(editor.document.uri.toString());
-            if (editor.document.uri.toString() === editorDocUri) {
-              console.log("aici2");
-              editor.edit(editBuilder => {
-                editBuilder.replace(editor.selection, text);
-              });
-            }
-          });
+        // vscode.window.visibleTextEditors.forEach(editor => {
+        //   console.log(editor.document.uri.toString());
+        //     if (editor.document.uri.toString() === editorDocUri) {
+        //       console.log("aici2");
+        //       editor.edit(editBuilder => {
+        //         editBuilder.replace(editor.selection, text);
+        //       });
+        //     }
+        //   });
     }
     });
 
@@ -165,9 +168,12 @@ export function activate(context: vscode.ExtensionContext) {
 				preview: true,
 			};
 
+			diffTxt =  document.getText().replace(document.getText(selection).toString(), fixCode);
+			fileName = document.fileName;
+
             const src = await vscode.workspace.openTextDocument({ content: document.getText()});
-            const dst = await vscode.workspace.openTextDocument({ content: document.getText().replace(document.getText(selection).toString(), fixCode)});
-            vscode.commands.executeCommand("vscode.diff", src.uri, dst.uri, 'DIFF'); 	
+            const dst = await vscode.workspace.openTextDocument({ content: diffTxt });
+            vscode.commands.executeCommand("vscode.diff", src.uri, dst!.uri, 'DIFF'); 	
             // editor.edit(editBuilder => {
             //     // editBuilder.replace(selection, func(document, selection));
             //     vscode.commands.executeCommand("vscode.diff", selection, func(document, selection));
