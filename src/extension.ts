@@ -6,6 +6,8 @@ import { TextEncoder } from 'util';
 
 const { Configuration, OpenAIApi } = require("openai");
 
+let editorDocUri: string | undefined;
+
 function write_file(name : string, content: string) {
 	const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
 	if (!workspaceFolder) {
@@ -73,7 +75,7 @@ class GptCaller {
 }
 
 async function find_bugs(caller: GptCaller, code: string, language: string): Promise<string> {
-	return caller.askChatGPT("Could you find the bugs in the function " + code + "which is written in " + " without writing the correct code");
+	return caller.askChatGPT("Could you find the bugs in the function " + code + "which is written in " + language + " without writing the correct code");
 }
 
 async function optimize(caller: GptCaller, code: string): Promise<string> {
@@ -93,10 +95,12 @@ async function find_complexity(caller: GptCaller, code: string): Promise<string>
 
 async function check_code(caller: GptCaller, code : string, language : string) {
 
-	const response1 = await find_bugs(caller, code, language);
-	// const response4 = await optimize(caller, fibo)
-	// const response5 = await optimize(caller, fibo)
-	// const response6 = await optimize(caller, fibo)
+	let response1 = await find_bugs(caller, code, language);
+
+	for (let i = 0; i < 1; ++i) {
+		response1 = await add_comments(caller, response1, language);
+	}
+
 	const response2 = await add_comments(caller, response1, language);
 	// const response3 = await find_complexity(caller, response2)
 	return response2
@@ -106,24 +110,46 @@ async function check_code(caller: GptCaller, code : string, language : string) {
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "ext-ts" is now active!');
+	const button = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+    button.text = '$(pencil) Replace Selection';
+    button.tooltip = 'Replace the selected text in the active editor';
+    button.command = 'extension.replaceSelection';
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
+    button.show();
+
+    vscode.commands.registerCommand('extension.replaceSelection', () => {
+    const editor = vscode.window.activeTextEditor;
+
+    if (editor) {
+        const text = 'New text to replace the selection with';
+
+        // vscode.commands.executeCommand('workbench.action.closeActiveEditor', { force: true });
+
+        // editor.edit((editBuilder) => {
+        //     editBuilder.replace(editor.selection, text);
+        // });
+
+        vscode.window.visibleTextEditors.forEach(editor => {
+          console.log(editor.document.uri.toString());
+            if (editor.document.uri.toString() === editorDocUri) {
+              console.log("aici2");
+              editor.edit(editBuilder => {
+                editBuilder.replace(editor.selection, text);
+              });
+            }
+          });
+    }
+    });
+
 	let disposable = vscode.commands.registerCommand('chatgpt-code-analyzer.helloWorld', async () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-
+	
 		let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
 		if (apiKey == "") {
 			console.log("You need to provide an API Key");
 		}
 
 		const editor = vscode.window.activeTextEditor;
-        if (editor) {
+    	if (editor) {
 			const caller = new GptCaller(apiKey);
 			const document = editor.document;
 			const selection = editor.selection;
@@ -135,8 +161,12 @@ export function activate(context: vscode.ExtensionContext) {
 			fixCode = fixCode.toString().replaceAll("`", "");
 			fixCode = fixCode.toString().replace(language, "");
 
-            const src = await vscode.workspace.openTextDocument({ content: document.getText(selection) });
-            const dst = await vscode.workspace.openTextDocument({ content: fixCode});
+			const textDocumentShowOptions: vscode.TextDocumentShowOptions = {
+				preview: true,
+			};
+
+            const src = await vscode.workspace.openTextDocument({ content: document.getText()});
+            const dst = await vscode.workspace.openTextDocument({ content: document.getText().replace(document.getText(selection).toString(), fixCode)});
             vscode.commands.executeCommand("vscode.diff", src.uri, dst.uri, 'DIFF'); 	
             // editor.edit(editBuilder => {
             //     // editBuilder.replace(selection, func(document, selection));
