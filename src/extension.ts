@@ -10,7 +10,8 @@ const { Configuration, OpenAIApi } = require("openai");
 let diffTxt: string | undefined;
 let dstUri : vscode.Uri | undefined;
 let fileName: vscode.Uri | undefined;
-
+let loadingButton: vscode.StatusBarItem | undefined;
+let button: vscode.StatusBarItem | undefined;
 
 async function close_opened_diffs() {
 	vscode.workspace.fs.delete(dstUri!);
@@ -92,7 +93,7 @@ async function find_complexity(caller: GptCaller, code: string): Promise<string>
 	return caller.askChatGPT("Could you tell the time and space complexity of the code above?")
 }
 
-async function check_code(caller: GptCaller, code : string, language : string) {
+async function check_code(caller: GptCaller, code: string, language: string) {
 
 	let response1 = await find_bugs(caller, code, language);
 
@@ -108,18 +109,28 @@ async function check_code(caller: GptCaller, code : string, language : string) {
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	if (loadingButton === undefined) {
+		loadingButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+	}
+	if (button === undefined) {
+		button = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+		button.tooltip = 'Replace the selected text in the active editor';
+		button.command = 'extension.replaceSelection';
+	}
 
-	const button = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
-    button.text = '$(pencil) Replace Selection';
-    button.tooltip = 'Replace the selected text in the active editor';
-    button.command = 'extension.replaceSelection';
+	vscode.commands.registerCommand('extension.replaceSelection', () => {
+		const editor = vscode.window.activeTextEditor;
 
-    button.show();
+		if (editor) {
 
-    vscode.commands.registerCommand('extension.replaceSelection', () => {
-    const editor = vscode.window.activeTextEditor;
+			// vscode.commands.executeCommand('workbench.action.closeActiveEditor', { force: true });
 
-    if (editor) {
+			// editor.edit((editBuilder) => {
+			//     editBuilder.replace(editor.selection, text);
+			// });
+			console.log("tessst");
+			write_file(fileName!, diffTxt!);
+			button!.text = "$(check) Done";
 
         // vscode.commands.executeCommand('workbench.action.closeActiveEditor', { force: true });
 
@@ -142,14 +153,17 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
 	let disposable = vscode.commands.registerCommand('chatgpt-code-analyzer.helloWorld', async () => {
-	
+		button!.text = "";
+		loadingButton!.text = "$(loading) Generating diff";
+		loadingButton!.show();
+
 		let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
 		if (apiKey === "") {
 			console.log("You need to provide an API Key");
 		}
 
 		const editor = vscode.window.activeTextEditor;
-    	if (editor) {
+		if (editor) {
 			const caller = new GptCaller(apiKey);
 			const document = editor.document;
 			const selection = editor.selection;
@@ -164,12 +178,20 @@ export function activate(context: vscode.ExtensionContext) {
 			diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
 			fileName = document.uri;
 
+			loadingButton!.text = "$(check) Diff generated";
+			button!.text = '$(pencil) Replace Selection';
+			button!.show();
+
+			loadingButton!.text = "$(check) Diff generated";
+			button!.text = '$(pencil) Replace Selection';
+			button!.show();
+
 			await write_file(dstUri!, diffTxt);
 			dstUri = (await vscode.workspace.openTextDocument(path.join(path.dirname(document.uri.path), "tmp.txt"))).uri;
             vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF'); 	
         }
 	});
-    
+
 	context.subscriptions.push(disposable);
 }
 
