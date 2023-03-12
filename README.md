@@ -6,6 +6,16 @@
 4. Create a new file with some text in it.
 5. Run the extension: `Ctrl + Shift + P`, type `Hello world`, enter.
 
+TODOs:
+- [ ] Format code after replace (ideally, suggest already formatted - correctly indented)
+- [ ] Add granularity (steps for comments, debug and optimize features)
+- [ ] Change `Generate diff` loading button to pop-up
+- [ ] Write README
+- [ ] Deploy to Marketplace
+- [ ] Make it run faster
+    - [ ] Make prompts smaller
+- [ ] Comment source code
+
 This is the README for your extension "chatgpt-code-analyzer". After writing up a brief description, we recommend including the following sections.
 
 ## Features
