@@ -22,7 +22,7 @@ comments to selected code.
 or just see the suggestions in the output (for `ChatGPT Find Bugs` and
 `ChatGPT Find Complexity`).
 
-![demo-suggest](img/VRfQjrA%20-%20Imgur.mp4)
+![demo-bugs](./img/demo_bugs.mp4)
 <!-- <video width="320" height="240" controls><source src="img/demo_bugs_and_complexity.mov"></video> -->
 <!-- <video width="320" height="240" controls><source src="https://imgur.com/VRfQjrA"></video> -->
 
