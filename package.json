@@ -24,6 +24,10 @@
       {
         "command": "chatgpt-code-analyzer.findComplexity",
         "title": "Chat GPT Find Complexity"
+      },
+      {
+        "command": "chatgpt-code-analyzer.optimize",
+        "title": "Chat GPT Optimize"
       }
     ],
     "keybindings" : [
@@ -43,6 +47,12 @@
       "command": "chatgpt-code-analyzer.findComplexity",
       "key": "ctrl+alt+shift+c",
       "mac": "cmd+alt+shift+c",
+      "when": "editorTextFocus"
+      },
+      {
+      "command": "chatgpt-code-analyzer.optimize",
+      "key": "ctrl+alt+shift+o",
+      "mac": "cmd+alt+shift+o",
       "when": "editorTextFocus"
       }
     ],

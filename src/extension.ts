@@ -85,8 +85,13 @@ async function findComplexity(caller: GptCaller, code: string, language: string)
         " code. Answer very briefly.");
 }
 
-async function optimize(caller: GptCaller, code: string): Promise<string> {
-    return caller.askChatGPT("Could you optimize the code?");
+async function optimize(caller: GptCaller, code: string, language: string): Promise<string> {
+    return caller.askChatGPT(code +
+        "Optimize the above " +
+        language +
+        "code. Write only code, succintly. Answer as a " +
+        language +
+        " markdown code block.");
 }
 
 // This method is called when your extension is activated
@@ -246,9 +251,88 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    let optimizationDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.optimize', async () => {
+        loadingButton!.text = "";
+
+        // Generate loading pop-up
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Connection established",
+            cancellable: true
+        }, (progress, token) => {
+            token.onCancellationRequested(() => {
+                console.log("User canceled diff generator");
+            });
+
+            progress.report({ increment: 0 });
+
+            setTimeout(() => {
+                progress.report({ increment: 20, message: "Chit-chat about weather..." });
+            }, 2500);
+
+            setTimeout(() => {
+                progress.report({ increment: 20, message: "Ask about health..." });
+            }, 5000);
+
+            setTimeout(() => {
+                progress.report({ increment: 20, message: "Ask to optimize code..." });
+            }, 7500);
+
+            setTimeout(() => {
+                progress.report({ increment: 20, message: "Pretty please..." });
+            }, 10000);
+
+            setTimeout(() => {
+                progress.report({ increment: 20, message: "Thanks!" });
+            }, 12000);
+
+            const p = new Promise<void>(resolve => {
+                setTimeout(() => {
+                    resolve();
+                }, 12500);
+            });
+
+            return p;
+        });
+
+        actionButton!.text = "";
+
+        let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
+        if (apiKey === "") {
+            console.log("You need to provide an API Key");
+        }
+
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            const caller = new GptCaller(apiKey);
+            const document = editor.document;
+            const selection = editor.selection;
+            const language = vscode.window.activeTextEditor?.document.languageId!;
+
+            console.log("Detected language: " + language);
+
+            let fixCode: string = await addComments(caller, document.getText(selection), language);
+            fixCode = fixCode.toString().replaceAll("`", "");
+            fixCode = fixCode.toString().replace(language, "");
+
+            const filePath = path.join(path.dirname(document.uri.path), ".tmp");
+            dstUri = vscode.Uri.file(filePath);
+            diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
+            fileName = document.uri;
+
+            actionButton!.text = '$(pencil) Replace Selection';
+            actionButton!.show();
+
+            await writeToFile(dstUri!, diffTxt);
+            dstUri = vscode.Uri.file(filePath);
+            vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+        }
+    });
+
     context.subscriptions.push(commentsDisposable);
     context.subscriptions.push(bugsDisposable);
     context.subscriptions.push(complexityDisposable);
+    context.subscriptions.push(optimizationDisposable);
 }
 
 // This method is called when your extension is deactivated
