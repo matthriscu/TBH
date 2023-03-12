@@ -21,7 +21,7 @@
     "keybindings" : {
       "command": "chatgpt-code-analyzer.helloWorld",
       "key": "ctrl+alt+a",
-      "mac": "cmd+option+a",
+      "mac": "cmd+alt+a",
       "when": "editorTextFocus"
     },
     "configuration": {
