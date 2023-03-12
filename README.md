@@ -1,6 +1,7 @@
 # ChatGPT Code Analyzer extension
 
-ChatGPT Code Analyzer integrates [ChatGPT](https://chat.openai.com) into
+[ChatGPT Code Analyzer](https://marketplace.visualstudio.com/items?itemName=thepolytechs.chatgpt-code-analyzer)
+integrates [ChatGPT](https://chat.openai.com) into
 [Visual Studio Code](https://code.visualstudio.com) to optimize, debug and add
 comments to selected code.
 
