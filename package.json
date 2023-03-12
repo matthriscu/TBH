@@ -14,16 +14,28 @@
   "contributes": {
     "commands": [
       {
-        "command": "chatgpt-code-analyzer.helloWorld",
-        "title": "Hello World"
+        "command": "chatgpt-code-analyzer.addComments",
+        "title": "Chat GPT Add Comments"
+      },
+      {
+        "command": "chatgpt-code-analyzer.findBugs",
+        "title": "Chat GPT Find Bugs"
       }
     ],
-    "keybindings" : {
-      "command": "chatgpt-code-analyzer.helloWorld",
-      "key": "ctrl+alt+a",
-      "mac": "cmd+alt+a",
+    "keybindings" : [
+      {
+      "command": "chatgpt-code-analyzer.addComments",
+      "key": "ctrl+alt+shift+a",
+      "mac": "cmd+alt+shift+a",
       "when": "editorTextFocus"
-    },
+      },
+      {
+      "command": "chatgpt-code-analyzer.findBugs",
+      "key": "ctrl+alt+shift+b",
+      "mac": "cmd+alt+shift+b",
+      "when": "editorTextFocus"
+      }
+    ],
     "configuration": {
       "title": "Chat-GPT API-Key",
       "properties": {

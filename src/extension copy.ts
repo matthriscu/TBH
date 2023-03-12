@@ -19,7 +19,7 @@ async function closeDiff() {
 };
 
 async function writeToFile(fileName: vscode.Uri, content: string) {
-    await vscode.workspace.fs.writeFile(fileName, new TextEncoder().encode(content)).then(() => {
+    vscode.workspace.fs.writeFile(fileName, new TextEncoder().encode(content)).then(() => {
         vscode.window.showInformationMessage(`File created: ${fileName}`);
     }, (err) => {
         vscode.window.showErrorMessage(`Failed to create file: ${err.message}`);
@@ -55,6 +55,8 @@ class GptCaller {
         });
         const res = completion.data.choices[0].message;
         this.messages.push(res);
+        // console.log(res.content);
+        // console.log(this.messages[1]);
 
         return res.content;
     }
@@ -92,6 +94,14 @@ async function findComplexity(caller: GptCaller, code: string): Promise<string> 
 
 async function optimize(caller: GptCaller, code: string): Promise<string> {
     return caller.askChatGPT("Could you optimize the code?");
+}
+
+async function checkCode(caller: GptCaller, code: string, language: string) {
+    const response1 = await addComments(caller, code, language);
+    // let response2 = await findBugs(caller, code, language);
+    // const response3 = await find_complexity(caller, response2)
+
+    return response1;
 }
 
 // This method is called when your extension is activated
@@ -224,6 +234,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(bugsDisposable);
+
     context.subscriptions.push(commentsDisposable);
 }
 
