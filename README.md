@@ -22,9 +22,9 @@ comments to selected code.
 or just see the suggestions in the output (for `ChatGPT Find Bugs` and
 `ChatGPT Find Complexity`).
 
-<!-- ![demo-suggest](https://i.imgur.com/VRfQjrA.mp4) -->
+![demo-suggest](img/VRfQjrA%20-%20Imgur.mp4)
 <!-- <video width="320" height="240" controls><source src="img/demo_bugs_and_complexity.mov"></video> -->
-<video width="320" height="240" controls><source src="https://imgur.com/VRfQjrA"></video>
+<!-- <video width="320" height="240" controls><source src="https://imgur.com/VRfQjrA"></video> -->
 
 ---
 
