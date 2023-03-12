@@ -22,8 +22,8 @@ comments to selected code.
 or just see the suggestions in the output (for `ChatGPT Find Bugs` and
 `ChatGPT Find Complexity`).
 
-![](https://imgur.com/B5CyOrI)
-![](https://imgur.com/cDjwvGY)
+![demo-bugs-complexity](https://imgur.com/a/Qmq7ufv)
+![demo-optimize](https://imgur.com/cDjwvGY)
 
 ### Alternatively
 
