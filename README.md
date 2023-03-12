@@ -1,54 +1,64 @@
-# chatgpt-code-analyzer README
-
-1. Open terminal.
-2. Write `npm install`.
-3. Run extension with `F5`.
-4. Open workspace.
-5. Select code (preferably a function) and run the extension: `Ctrl + Shift + P`, type `Hello world`, enter.
-6. Click on 'Replace selection'.
-7. If you want to undo, `Ctrl + Z`.
+# ChatGPT Code Analyzer extension
 
 TODOs:
 - [ ] Format code after replace (ideally, suggest already formatted - correctly indented)
-- [ ] Add granularity (steps for comments, debug and optimize features)
+- [x] Add granularity (steps for comments, debug and optimize features)
 - [x] Change `Generate diff` loading button to pop-up
-- [ ] Write README
+- [x] Write README
 - [ ] Deploy to Marketplace
 - [ ] Make it run faster
     - [ ] Make prompts smaller
 - [ ] Use more provided technologies
 - [ ] Comment source code
 
-This is the README for your extension "chatgpt-code-analyzer". After writing up a brief description, we recommend including the following sections.
+ChatGPT Code Analyzer integrates [ChatGPT](https://chat.openai.com) into
+[Visual Studio Code](https://code.visualstudio.com) to optimize, debug and add
+comments to selected code.
 
-## Features
+---
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## Usage
 
-For example if there is an image subfolder under your extension project workspace:
+1. Install and enable extension.
 
-\!\[feature X\]\(images/feature-x.png\)
+2. Select code that you want to analyze.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+3. Run any of the available commands:
+- `ChatGPT Add Comments` (`[Ctrl + Alt + Shift + A]` or `[Cmd + Opt + Shift + A]`)
+- `ChatGPT Find Bugs` (`Ctrl + Alt + Shift + B` or `Cmd + Opt + Shift + B`)
+- `ChatGPT Find Complexity` (`Ctrl + Alt + Shift + C` or `Cmd + Opt + Shift + C`)
+- `ChatGPT Optimize` (`Ctrl + Alt + Shift + O` or `Cmd + Opt + Shift + O`)
 
-## Requirements
+4. Accept or reject the suggestion (for `ChatGPT Optimize` and `ChatGPT Add Comments`)
+or just see the suggestions in the output (for `ChatGPT Find Bugs` and
+`ChatGPT Find Complexity`).
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+![](https://imgur.com/B5CyOrI)
 
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+---
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+### Unpredictibility
+
+- Each run of an extension command generates a prompt to ChatGPT. Because of this
+  each run generates a different output/suggestion. Some suggestions may even be
+  wrong.
+
+- Sometimes ChatGPT does not generate output in the expected format for the code
+  suggestion commands. The prompt asks ChatGPT to write the output as Markdown
+  block code but sometimes it fails to do so.
+
+### Inflexibility
+
+- The prompt is fixed, it cannot be changed by the user.
+
+### Slow response
+
+- For long selections the waiting time for a response is very long (> 20s). This
+  is because of the time it takes ChatGPT to generate a response.
+
+---
 
 ## Release Notes
 
@@ -58,33 +68,6 @@ Users appreciate release notes as you update your extension.
 
 Initial release of ...
 
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
 ---
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
 **Enjoy!**
