@@ -16,6 +16,7 @@ TODOs:
 - [ ] Deploy to Marketplace
 - [ ] Make it run faster
     - [ ] Make prompts smaller
+- [ ] Use more provided technologies
 - [ ] Comment source code
 
 This is the README for your extension "chatgpt-code-analyzer". After writing up a brief description, we recommend including the following sections.
