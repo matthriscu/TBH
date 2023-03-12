@@ -47,6 +47,15 @@ or just see the suggestions in the output (for `ChatGPT Find Bugs` and
 - For long selections the waiting time for a response is very long (> 20s). This
   is because of the time it takes ChatGPT to generate a response.
 
+### Extra generated file for comment and optimization suggestions
+
+- When running the commands `ChatGPT Add Comments` and `ChatGPT Optimize` an
+  extra (unnecessary) file is generated instead of just generating the diff
+  editor. This is because we could not find another way to format the generated
+  response. If the file is closed within Visual Studio Code, it is not deleted.
+  It only gets deleted if one of the provided buttons is pressed (`Accept suggestions`
+  or `Ignore suggestions`).
+
 ---
 
 ## Release Notes
