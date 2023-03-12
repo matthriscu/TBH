@@ -18,6 +18,12 @@
         "title": "Hello World"
       }
     ],
+    "keybindings" : {
+      "command": "chatgpt-code-analyzer.helloWorld",
+      "key": "ctrl+alt+a",
+      "mac": "cmd+option+a",
+      "when": "editorTextFocus"
+    },
     "configuration": {
       "title": "Chat-GPT API-Key",
       "properties": {

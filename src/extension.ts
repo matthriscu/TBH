@@ -71,12 +71,9 @@ async function optimize(caller: GptCaller, code: string): Promise<string> {
 }
 
 async function addComments(caller: GptCaller, code: string, language: string): Promise<string> {
-	const res = await caller.askChatGPT("Could you add proper comments to the corrected code above? It's written in" +
-		language +
-		". Please also add types to parameters");
+	const res = await caller.askChatGPT("Could you add proper comments to the corrected code above? It's written in" + language + "Don't change signature of the function and do not add extra comments for external parameters. Do not add any additional information outside the function. Do not delete constructors. Do not add imports or any additional requirements. Use a well known standard and keep it consistent");
 	const regex = /```([\s\S]*?)```/g;
 	const markdownCode = res.match(regex);
-
 	return markdownCode;
 }
 
