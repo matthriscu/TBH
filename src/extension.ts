@@ -16,12 +16,12 @@ let rejectButton: vscode.StatusBarItem | undefined;
 async function changeDiff() {
     await vscode.workspace.openTextDocument(dstUri!);
     await vscode.window.showTextDocument(dstUri!);
-	await vscode.workspace.fs.readFile(dstUri!)
+    await vscode.workspace.fs.readFile(dstUri!)
         .then(sourceData => vscode.workspace.fs.writeFile(fileName!, sourceData!));
 }
 
 async function closeDiff() {
-	await vscode.workspace.fs.delete(dstUri!);
+    await vscode.workspace.fs.delete(dstUri!);
 };
 
 async function writeToFile(fileName: vscode.Uri, content: string) {
@@ -115,8 +115,8 @@ export function activate(context: vscode.ExtensionContext) {
     console.log("ChatGPT Analyzer extension activated");
 
     if (loadingButton === undefined) {
-		loadingButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
-	}
+        loadingButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+    }
     if (acceptButton === undefined) {
         acceptButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
         acceptButton.tooltip = 'Replace the selected text in the active editor';
@@ -148,10 +148,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    let commentsDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.addComments', async () => {
-        loadingButton!.text = "";
-
-        // Generate loading pop-up
+    function loadingPopUp() {
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "Connection established",
@@ -164,231 +161,196 @@ export function activate(context: vscode.ExtensionContext) {
             progress.report({ increment: 0 });
 
             setTimeout(() => {
-                progress.report({ increment: 20, message: "Chit-chat about weather..." });
-            }, 2500);
+                progress.report({ increment: 20, message: "Generating response..." });
+            }, 1200);
 
             setTimeout(() => {
-                progress.report({ increment: 20, message: "Ask about health..." });
-            }, 5000);
+                progress.report({ increment: 20, message: "Generating response..." });
+            }, 2400);
 
             setTimeout(() => {
-                progress.report({ increment: 20, message: "Ask to analyze code..." });
-            }, 7500);
+                progress.report({ increment: 20, message: "Generating response..." });
+            }, 3600);
 
             setTimeout(() => {
-                progress.report({ increment: 20, message: "Pretty please..." });
-            }, 10000);
+                progress.report({ increment: 20, message: "Generating response..." });
+            }, 4800);
 
             setTimeout(() => {
-                progress.report({ increment: 20, message: "Thanks!" });
-            }, 12000);
+                progress.report({ increment: 20, message: "Response generated." });
+            }, 6200);
 
             const p = new Promise<void>(resolve => {
                 setTimeout(() => {
                     resolve();
-                }, 12500);
+                }, 6500);
             });
 
             return p;
         });
+    }
 
-        acceptButton!.text = "";
-        rejectButton!.text = "";
+        let commentsDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.addComments', async () => {
+            loadingButton!.text = "";
+            loadingPopUp();
 
-        let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
-        if (apiKey === "") {
-            console.log("You need to provide an API Key");
-        }
+            acceptButton!.text = "";
+            rejectButton!.text = "";
 
-        const editor = vscode.window.activeTextEditor;
-        if (editor) {
-            const caller = new GptCaller(apiKey);
-            const document = editor.document;
-            const selection = editor.selection;
-            const language = vscode.window.activeTextEditor?.document.languageId!;
+            let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
+            if (apiKey === "") {
+                console.log("You need to provide an API Key");
+            }
 
-            console.log("Detected language: " + language);
+            const editor = vscode.window.activeTextEditor;
+            if (editor) {
+                const caller = new GptCaller(apiKey);
+                const document = editor.document;
+                const selection = editor.selection;
+                const language = vscode.window.activeTextEditor?.document.languageId!;
 
-            let fixCode: string = await addComments(caller, document.getText(selection), language);
-            fixCode = fixCode.toString().replaceAll("`", "");
-            fixCode = fixCode.toString().replace(language, "");
+                console.log("Detected language: " + language);
 
-            const filePath = path.join(path.dirname(document.uri.path), (Math.random().toString(36).slice(2) + "." + language));
-            dstUri = vscode.Uri.file(filePath);
-            diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
-            fileName = document.uri;
+                let fixCode: string = await addComments(caller, document.getText(selection), language);
+                fixCode = fixCode.toString().replaceAll("`", "");
+                fixCode = fixCode.toString().replace(language, "");
 
-            acceptButton!.text = '$(pencil) Accept suggestions';
-            acceptButton!.show();
-            rejectButton!.text = '$(pencil) Ignore suggestions';
-            rejectButton!.show();
+                const filePath = path.join(path.dirname(document.uri.path), (Math.random().toString(36).slice(2) + "." + language));
+                dstUri = vscode.Uri.file(filePath);
+                diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
+                fileName = document.uri;
 
-            await writeToFile(dstUri!, diffTxt);
-            dstUri = vscode.Uri.file(filePath);
-            vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
-        }
-    });
+                acceptButton!.text = '$(pencil) Accept suggestions';
+                acceptButton!.show();
+                rejectButton!.text = '$(pencil) Ignore suggestions';
+                rejectButton!.show();
 
-    let bugsDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.findBugs', async () => {
-        acceptButton!.text = "";
-        rejectButton!.text = "";
-        loadingButton!.text = "$(loading) Generating output";
-		loadingButton!.show();
-
-        let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
-        if (apiKey === "") {
-            console.log("You need to provide an API Key");
-        }
-
-        const editor = vscode.window.activeTextEditor;
-        if (editor) {
-            const caller = new GptCaller(apiKey);
-            const document = editor.document;
-            const selection = editor.selection;
-            const language = vscode.window.activeTextEditor?.document.languageId!;
-
-            console.log("Detected language: " + language);
-
-            let fixCode: string = await findBugs(caller, document.getText(selection), language);
-            loadingButton!.text = "$(check) Output generated";
-
-            const channel = vscode.window.createOutputChannel("Bug Analysis");
-            channel.append(fixCode);
-            channel.show();
-        }
-    });
-
-    let complexityDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.findComplexity', async () => {
-        acceptButton!.text = "";
-        rejectButton!.text = "";
-        loadingButton!.text = "$(loading) Generating output";
-		loadingButton!.show();
-
-        let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
-        if (apiKey === "") {
-            console.log("You need to provide an API Key");
-        }
-
-        const editor = vscode.window.activeTextEditor;
-        if (editor) {
-            const caller = new GptCaller(apiKey);
-            const document = editor.document;
-            const selection = editor.selection;
-            const language = vscode.window.activeTextEditor?.document.languageId!;
-
-            console.log("Detected language: " + language);
-
-            let fixCode: string = await findComplexity(caller, document.getText(selection), language);
-            loadingButton!.text = "$(check) Output generated";
-
-            const channel = vscode.window.createOutputChannel("Complexity Analysis");
-            channel.append(fixCode);
-            channel.show();
-        }
-    });
-
-    let optimizationDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.optimize', async () => {
-        loadingButton!.text = "";
-
-        // Generate loading pop-up
-        vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "Connection established",
-            cancellable: true
-        }, (progress, token) => {
-            token.onCancellationRequested(() => {
-                console.log("User canceled diff generator");
-            });
-
-            progress.report({ increment: 0 });
-
-            setTimeout(() => {
-                progress.report({ increment: 20, message: "Chit-chat about weather..." });
-            }, 2500);
-
-            setTimeout(() => {
-                progress.report({ increment: 20, message: "Ask about health..." });
-            }, 5000);
-
-            setTimeout(() => {
-                progress.report({ increment: 20, message: "Ask to optimize code..." });
-            }, 7500);
-
-            setTimeout(() => {
-                progress.report({ increment: 20, message: "Pretty please..." });
-            }, 10000);
-
-            setTimeout(() => {
-                progress.report({ increment: 20, message: "Thanks!" });
-            }, 12000);
-
-            const p = new Promise<void>(resolve => {
-                setTimeout(() => {
-                    resolve();
-                }, 12500);
-            });
-
-            return p;
+                await writeToFile(dstUri!, diffTxt);
+                dstUri = vscode.Uri.file(filePath);
+                vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+            }
         });
 
-        acceptButton!.text = "";
-        rejectButton!.text = "";
+        let bugsDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.findBugs', async () => {
+            acceptButton!.text = "";
+            rejectButton!.text = "";
+            loadingButton!.text = "$(loading) Generating output";
+            loadingButton!.show();
 
-        let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
-        if (apiKey === "") {
-            console.log("You need to provide an API Key");
-        }
+            let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
+            if (apiKey === "") {
+                console.log("You need to provide an API Key");
+            }
 
-        let editor = vscode.window.activeTextEditor;
-        if (editor) {
-            const caller = new GptCaller(apiKey);
-            const document = editor.document;
-            const selection = editor.selection;
-            const language = vscode.window.activeTextEditor?.document.languageId!;
+            const editor = vscode.window.activeTextEditor;
+            if (editor) {
+                const caller = new GptCaller(apiKey);
+                const document = editor.document;
+                const selection = editor.selection;
+                const language = vscode.window.activeTextEditor?.document.languageId!;
 
-            console.log("Detected language: " + language);
+                console.log("Detected language: " + language);
 
-            let fixCode: string = await optimize(caller, document.getText(selection), language);
-            fixCode = fixCode.toString().replaceAll("`", "");
-            fixCode = fixCode.toString().replace(language, "");
+                let fixCode: string = await findBugs(caller, document.getText(selection), language);
+                loadingButton!.text = "$(check) Output generated";
 
-            const filePath = path.join(path.dirname(document.uri.path), (Math.random().toString(36).slice(2) + "." + language));
-            dstUri = vscode.Uri.file(filePath);
-            diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
-            fileName = document.uri;
+                const channel = vscode.window.createOutputChannel("Bug Analysis");
+                channel.append(fixCode);
+                channel.show();
+            }
+        });
 
-            acceptButton!.text = '$(pencil) Accept Suggestions';
-            acceptButton!.show();
-            rejectButton!.text = '$(pencil) Ignore Suggestions';
-            rejectButton!.show();
+        let complexityDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.findComplexity', async () => {
+            acceptButton!.text = "";
+            rejectButton!.text = "";
+            loadingButton!.text = "$(loading) Generating output";
+            loadingButton!.show();
 
-            await writeToFile(dstUri!, diffTxt);
-            dstUri = vscode.Uri.file(filePath);
-            vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+            let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
+            if (apiKey === "") {
+                console.log("You need to provide an API Key");
+            }
 
-            let tmpDoc = (await (vscode.workspace.openTextDocument(filePath)));
-			await vscode.window.showTextDocument(tmpDoc);
-			
-			let indexStart: number = diffTxt.indexOf(fixCode);
-			let indexEnd: number = indexStart + fixCode.length;
+            const editor = vscode.window.activeTextEditor;
+            if (editor) {
+                const caller = new GptCaller(apiKey);
+                const document = editor.document;
+                const selection = editor.selection;
+                const language = vscode.window.activeTextEditor?.document.languageId!;
 
-			editor = vscode.window.activeTextEditor;
-			editor!.selection = new vscode.Selection(tmpDoc.positionAt(indexStart), tmpDoc.positionAt(indexEnd));
-			await vscode.commands.executeCommand('editor.action.formatSelection');
-			await tmpDoc.save();
-			dstUri = vscode.Uri.file(filePath);
-			vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
-	
-        }
-    });
+                console.log("Detected language: " + language);
 
-    context.subscriptions.push(commentsDisposable);
-    context.subscriptions.push(bugsDisposable);
-    context.subscriptions.push(complexityDisposable);
-    context.subscriptions.push(optimizationDisposable);
-}
+                let fixCode: string = await findComplexity(caller, document.getText(selection), language);
+                loadingButton!.text = "$(check) Output generated";
 
-// This method is called when your extension is deactivated
-export function deactivate() {
-    console.log("Extension deactivated");
-}
+                const channel = vscode.window.createOutputChannel("Complexity Analysis");
+                channel.append(fixCode);
+                channel.show();
+            }
+        });
+
+        let optimizationDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.optimize', async () => {
+            loadingButton!.text = "";
+            loadingPopUp();
+
+            acceptButton!.text = "";
+            rejectButton!.text = "";
+
+            let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
+            if (apiKey === "") {
+                console.log("You need to provide an API Key");
+            }
+
+            let editor = vscode.window.activeTextEditor;
+            if (editor) {
+                const caller = new GptCaller(apiKey);
+                const document = editor.document;
+                const selection = editor.selection;
+                const language = vscode.window.activeTextEditor?.document.languageId!;
+
+                console.log("Detected language: " + language);
+
+                let fixCode: string = await optimize(caller, document.getText(selection), language);
+                fixCode = fixCode.toString().replaceAll("`", "");
+                fixCode = fixCode.toString().replace(language, "");
+
+                const filePath = path.join(path.dirname(document.uri.path), (Math.random().toString(36).slice(2) + "." + language));
+                dstUri = vscode.Uri.file(filePath);
+                diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
+                fileName = document.uri;
+
+                acceptButton!.text = '$(pencil) Accept Suggestions';
+                acceptButton!.show();
+                rejectButton!.text = '$(pencil) Ignore Suggestions';
+                rejectButton!.show();
+
+                await writeToFile(dstUri!, diffTxt);
+                dstUri = vscode.Uri.file(filePath);
+                vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+
+                let tmpDoc = (await (vscode.workspace.openTextDocument(filePath)));
+                await vscode.window.showTextDocument(tmpDoc);
+
+                let indexStart: number = diffTxt.indexOf(fixCode);
+                let indexEnd: number = indexStart + fixCode.length;
+
+                editor = vscode.window.activeTextEditor;
+                editor!.selection = new vscode.Selection(tmpDoc.positionAt(indexStart), tmpDoc.positionAt(indexEnd));
+                await vscode.commands.executeCommand('editor.action.formatSelection');
+                await tmpDoc.save();
+                dstUri = vscode.Uri.file(filePath);
+                vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+
+            }
+        });
+
+        context.subscriptions.push(commentsDisposable);
+        context.subscriptions.push(bugsDisposable);
+        context.subscriptions.push(complexityDisposable);
+        context.subscriptions.push(optimizationDisposable);
+    }
+
+    // This method is called when your extension is deactivated
+    export function deactivate() {
+        console.log("Extension deactivated");
+    }
