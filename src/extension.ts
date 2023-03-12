@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { TextEncoder } from 'util';
-import { doesNotThrow } from 'assert';
 
 const { Configuration, OpenAIApi } = require("openai");
 
