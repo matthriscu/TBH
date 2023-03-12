@@ -1,16 +1,5 @@
 # ChatGPT Code Analyzer extension
 
-TODOs:
-- [ ] Format code after replace (ideally, suggest already formatted - correctly indented)
-- [x] Add granularity (steps for comments, debug and optimize features)
-- [x] Change `Generate diff` loading button to pop-up
-- [x] Write README
-- [ ] Deploy to Marketplace
-- [x] Make it run faster
-    - [x] Make prompts smaller
-- [ ] Use more provided technologies
-- [ ] Comment source code
-
 ChatGPT Code Analyzer integrates [ChatGPT](https://chat.openai.com) into
 [Visual Studio Code](https://code.visualstudio.com) to optimize, debug and add
 comments to selected code.
@@ -29,7 +18,7 @@ comments to selected code.
 - `ChatGPT Find Complexity` (`Ctrl + Alt + Shift + C` or `Cmd + Opt + Shift + C`)
 - `ChatGPT Optimize` (`Ctrl + Alt + Shift + O` or `Cmd + Opt + Shift + O`)
 
-4. Accept or reject the suggestion (for `ChatGPT Optimize` and `ChatGPT Add Comments`)
+4. Accept or ignore the suggestions (for `ChatGPT Optimize` and `ChatGPT Add Comments`)
 or just see the suggestions in the output (for `ChatGPT Find Bugs` and
 `ChatGPT Find Complexity`).
 
