@@ -20,6 +20,10 @@
       {
         "command": "chatgpt-code-analyzer.findBugs",
         "title": "Chat GPT Find Bugs"
+      },
+      {
+        "command": "chatgpt-code-analyzer.findComplexity",
+        "title": "Chat GPT Find Complexity"
       }
     ],
     "keybindings" : [
@@ -33,6 +37,12 @@
       "command": "chatgpt-code-analyzer.findBugs",
       "key": "ctrl+alt+shift+b",
       "mac": "cmd+alt+shift+b",
+      "when": "editorTextFocus"
+      },
+      {
+      "command": "chatgpt-code-analyzer.findComplexity",
+      "key": "ctrl+alt+shift+c",
+      "mac": "cmd+alt+shift+c",
       "when": "editorTextFocus"
       }
     ],

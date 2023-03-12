@@ -56,9 +56,6 @@ class GptCaller {
 }
 
 async function addComments(caller: GptCaller, code: string, language: string): Promise<string> {
-	// const res = await caller.askChatGPT("Could you add proper comments to the corrected code above? It's written in" +
-    //     language +
-    //     "Don't change signature of the function and do not add extra comments for external parameters. Do not add any additional information outside the function. Do not delete constructors. Do not add imports or any additional requirements. Use a well known standard and keep it consistent");
     const res = await caller.askChatGPT(code +
         "\nAdd comments to the above " +
         language +
@@ -81,8 +78,11 @@ async function findBugs(caller: GptCaller, code: string, language: string): Prom
         " code. Answer very briefly. Answer as a numbered list.");
 }
 
-async function findComplexity(caller: GptCaller, code: string): Promise<string> {
-    return caller.askChatGPT("Could you tell the time and space complexity of the code above?");
+async function findComplexity(caller: GptCaller, code: string, language: string): Promise<string> {
+    return caller.askChatGPT(code +
+        "\nTell me the temporal and spatial complexity of the above " +
+        language +
+        " code. Answer very briefly.");
 }
 
 async function optimize(caller: GptCaller, code: string): Promise<string> {
@@ -192,7 +192,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     let bugsDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.findBugs', async () => {
         actionButton!.text = "";
-        loadingButton!.text = "$(loading) Generating diff";
+        loadingButton!.text = "$(loading) Generating output";
 		loadingButton!.show();
 
         let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
@@ -212,14 +212,43 @@ export function activate(context: vscode.ExtensionContext) {
             let fixCode: string = await findBugs(caller, document.getText(selection), language);
             loadingButton!.text = "$(check) Output generated";
 
-            const channel = vscode.window.createOutputChannel("Bugsssss");
+            const channel = vscode.window.createOutputChannel("Bug Analysis");
             channel.append(fixCode);
             channel.show();
         }
     });
 
-    context.subscriptions.push(bugsDisposable);
+    let complexityDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.findComplexity', async () => {
+        actionButton!.text = "";
+        loadingButton!.text = "$(loading) Generating output";
+		loadingButton!.show();
+
+        let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
+        if (apiKey === "") {
+            console.log("You need to provide an API Key");
+        }
+
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            const caller = new GptCaller(apiKey);
+            const document = editor.document;
+            const selection = editor.selection;
+            const language = vscode.window.activeTextEditor?.document.languageId!;
+
+            console.log("Detected language: " + language);
+
+            let fixCode: string = await findComplexity(caller, document.getText(selection), language);
+            loadingButton!.text = "$(check) Output generated";
+
+            const channel = vscode.window.createOutputChannel("Complexity Analysis");
+            channel.append(fixCode);
+            channel.show();
+        }
+    });
+
     context.subscriptions.push(commentsDisposable);
+    context.subscriptions.push(bugsDisposable);
+    context.subscriptions.push(complexityDisposable);
 }
 
 // This method is called when your extension is deactivated
