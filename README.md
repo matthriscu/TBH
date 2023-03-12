@@ -23,6 +23,7 @@ or just see the suggestions in the output (for `ChatGPT Find Bugs` and
 `ChatGPT Find Complexity`).
 
 ![](https://imgur.com/B5CyOrI)
+![](https://imgur.com/cDjwvGY)
 
 ---
 
