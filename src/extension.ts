@@ -17,12 +17,10 @@ async function changeDiff() {
     await vscode.workspace.openTextDocument(dstUri!);
     await vscode.window.showTextDocument(dstUri!);
 	await vscode.workspace.fs.readFile(dstUri!)
-        .then(async sourceData => await vscode.workspace.fs.writeFile(fileName!, sourceData!));
+        .then(sourceData => vscode.workspace.fs.writeFile(fileName!, sourceData!));
 }
 
 async function closeDiff() {
-	await vscode.workspace.fs.readFile(dstUri!)
-        .then(async sourceData => await vscode.workspace.fs.writeFile(fileName!, sourceData!));
 	await vscode.workspace.fs.delete(dstUri!);
 };
 
@@ -202,7 +200,7 @@ export function activate(context: vscode.ExtensionContext) {
             console.log("You need to provide an API Key");
         }
 
-        let editor = vscode.window.activeTextEditor;
+        const editor = vscode.window.activeTextEditor;
         if (editor) {
             const caller = new GptCaller(apiKey);
             const document = editor.document;
@@ -216,23 +214,18 @@ export function activate(context: vscode.ExtensionContext) {
             fixCode = fixCode.toString().replace(language, "");
 
             const filePath = path.join(path.dirname(document.uri.path), (Math.random().toString(36).slice(2) + "." + language));
-			dstUri = vscode.Uri.file(filePath);
-			diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
-			fileName = document.uri;
+            dstUri = vscode.Uri.file(filePath);
+            diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
+            fileName = document.uri;
 
-			await writeToFile(dstUri!, diffTxt);
-			let tmpDoc = (await (vscode.workspace.openTextDocument(filePath)));
-			await vscode.window.showTextDocument(tmpDoc);
-			
-			let indexStart: number = diffTxt.indexOf(fixCode);
-			let indexEnd: number = indexStart + fixCode.length;
+            acceptButton!.text = '$(pencil) Accept suggestions';
+            acceptButton!.show();
+            rejectButton!.text = '$(pencil) Ignore suggestions';
+            rejectButton!.show();
 
-			editor = vscode.window.activeTextEditor;
-			editor!.selection = new vscode.Selection(tmpDoc.positionAt(indexStart), tmpDoc.positionAt(indexEnd));
-			await vscode.commands.executeCommand('editor.action.formatSelection');
-			await tmpDoc.save();
-			dstUri = vscode.Uri.file(filePath);
-			vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+            await writeToFile(dstUri!, diffTxt);
+            dstUri = vscode.Uri.file(filePath);
+            vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
         }
     });
 
@@ -360,18 +353,20 @@ export function activate(context: vscode.ExtensionContext) {
             fixCode = fixCode.toString().replace(language, "");
 
             const filePath = path.join(path.dirname(document.uri.path), (Math.random().toString(36).slice(2) + "." + language));
-			dstUri = vscode.Uri.file(filePath);
-			diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
-			fileName = document.uri;
+            dstUri = vscode.Uri.file(filePath);
+            diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
+            fileName = document.uri;
 
             acceptButton!.text = '$(pencil) Accept Suggestions';
             acceptButton!.show();
             rejectButton!.text = '$(pencil) Ignore Suggestions';
             rejectButton!.show();
 
-			await writeToFile(dstUri!, diffTxt);
+            await writeToFile(dstUri!, diffTxt);
+            dstUri = vscode.Uri.file(filePath);
+            vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
 
-			let tmpDoc = (await (vscode.workspace.openTextDocument(filePath)));
+            let tmpDoc = (await (vscode.workspace.openTextDocument(filePath)));
 			await vscode.window.showTextDocument(tmpDoc);
 			
 			let indexStart: number = diffTxt.indexOf(fixCode);
@@ -383,6 +378,7 @@ export function activate(context: vscode.ExtensionContext) {
 			await tmpDoc.save();
 			dstUri = vscode.Uri.file(filePath);
 			vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+	
         }
     });
 
