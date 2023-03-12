@@ -11,7 +11,7 @@
 TODOs:
 - [ ] Format code after replace (ideally, suggest already formatted - correctly indented)
 - [ ] Add granularity (steps for comments, debug and optimize features)
-- [ ] Change `Generate diff` loading button to pop-up
+- [x] Change `Generate diff` loading button to pop-up
 - [ ] Write README
 - [ ] Deploy to Marketplace
 - [ ] Make it run faster
