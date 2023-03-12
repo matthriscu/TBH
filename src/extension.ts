@@ -311,7 +311,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             console.log("Detected language: " + language);
 
-            let fixCode: string = await addComments(caller, document.getText(selection), language);
+            let fixCode: string = await optimize(caller, document.getText(selection), language);
             fixCode = fixCode.toString().replaceAll("`", "");
             fixCode = fixCode.toString().replace(language, "");
 
