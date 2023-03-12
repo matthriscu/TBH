@@ -1,5 +1,4 @@
 // The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -8,18 +7,17 @@ import { TextEncoder } from 'util';
 const { Configuration, OpenAIApi } = require("openai");
 
 let diffTxt: string | undefined;
-let dstUri : vscode.Uri | undefined;
+let dstUri: vscode.Uri | undefined;
 let fileName: vscode.Uri | undefined;
 let loadingButton: vscode.StatusBarItem | undefined;
-let button: vscode.StatusBarItem | undefined;
+let actionButton: vscode.StatusBarItem | undefined;
 
-async function close_opened_diffs() {
+async function closeDiff() {
 	await vscode.workspace.fs.copy(fileName!, dstUri!, { overwrite: true });
 	await vscode.workspace.fs.delete(dstUri!);
 };
 
-async function write_file(fileName : vscode.Uri, content: string) {
-	
+async function writeToFile(fileName: vscode.Uri, content: string) {
 	vscode.workspace.fs.writeFile(fileName, new TextEncoder().encode(content)).then(() => {
 		vscode.window.showInformationMessage(`File created: ${fileName}`);
 	}, (err) => {
@@ -27,21 +25,11 @@ async function write_file(fileName : vscode.Uri, content: string) {
 	});
 }
 
-let fibo =
-	"int sum(int n, int n) {\n" +
-	"v = 0\n" +
-	"int s = 0;\n" +
-	"for (int i = 0; i < n; i++) {\n" +
-	"s += v[i];\n" +
-	"}\n" +
-	"return s\n" +
-	"}\n"
-
 class GptCaller {
 	openai: typeof OpenAIApi;
-	messages: any[] = []
+	messages: any[] = [];
 
-	constructor(apiKey: String) {
+	constructor(apiKey: string) {
 		const configuration = new Configuration({
 			apiKey: apiKey,
 		});
@@ -50,13 +38,12 @@ class GptCaller {
 	}
 
 	async askChatGPT(requestText: string) {
-
 		this.messages.push({
 			role: "user",
 			content: requestText
 		});
 
-		if (this.openai == null || this.openai == undefined) {
+		if (this.openai === null || this.openai === undefined) {
 			return "";
 		}
 
@@ -64,46 +51,44 @@ class GptCaller {
 			model: "gpt-3.5-turbo",
 			messages: this.messages
 		});
-
-		const res = completion.data.choices[0].message
-
-		// console.log(res.content)
-
-
+		const res = completion.data.choices[0].message;
 		this.messages.push(res);
-		return res.content
+
+		return res.content;
 	}
 }
 
-async function find_bugs(caller: GptCaller, code: string, language: string): Promise<string> {
-	return caller.askChatGPT("Could you find the bugs in the function " + code + "which is written in " + language + " without writing the correct code");
+async function findBugs(caller: GptCaller, code: string, language: string): Promise<string> {
+	return caller.askChatGPT("Could you find the bugs in the function " +
+		code +
+		"which is written in " +
+		language +
+		" without writing the correct code");
 }
 
 async function optimize(caller: GptCaller, code: string): Promise<string> {
 	return caller.askChatGPT("Could you optimize the code?");
 }
 
-async function add_comments(caller: GptCaller, code: string, language: string): Promise<string> {
-	const res = await caller.askChatGPT("Could you add proper comments to the corrected code above? It's written in" + language + ".Please also add types to parameters")
+async function addComments(caller: GptCaller, code: string, language: string): Promise<string> {
+	const res = await caller.askChatGPT("Could you add proper comments to the corrected code above? It's written in" +
+		language +
+		". Please also add types to parameters");
 	const regex = /```([\s\S]*?)```/g;
-	const markdown_code = res.match(regex);
-	return markdown_code;
+	const markdownCode = res.match(regex);
+
+	return markdownCode;
 }
 
-async function find_complexity(caller: GptCaller, code: string): Promise<string> {
-	return caller.askChatGPT("Could you tell the time and space complexity of the code above?")
+async function findComplexity(caller: GptCaller, code: string): Promise<string> {
+	return caller.askChatGPT("Could you tell the time and space complexity of the code above?");
 }
 
-async function check_code(caller: GptCaller, code: string, language: string) {
-
-	let response1 = await find_bugs(caller, code, language);
-
-	// for (let i = 0; i < 1; ++i) {
-	// 	response1 = await add_comments(caller, response1, language);
-	// }
-
-	const response2 = await add_comments(caller, code, language);
+async function checkCode(caller: GptCaller, code: string, language: string) {
+	let response1 = await findBugs(caller, code, language);
+	const response2 = await addComments(caller, code, language);
 	// const response3 = await find_complexity(caller, response2)
+
 	return response2;
 }
 
@@ -113,49 +98,23 @@ export function activate(context: vscode.ExtensionContext) {
 	if (loadingButton === undefined) {
 		loadingButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
 	}
-	if (button === undefined) {
-		button = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
-		button.tooltip = 'Replace the selected text in the active editor';
-		button.command = 'extension.replaceSelection';
+	if (actionButton === undefined) {
+		actionButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+		actionButton.tooltip = 'Replace the selected text in the active editor';
+		actionButton.command = 'extension.replaceSelection';
 	}
 
 	vscode.commands.registerCommand('extension.replaceSelection', () => {
 		const editor = vscode.window.activeTextEditor;
-
 		if (editor) {
-
-			// vscode.commands.executeCommand('workbench.action.closeActiveEditor', { force: true });
-
-			// editor.edit((editBuilder) => {
-			//     editBuilder.replace(editor.selection, text);
-			// });
-			console.log("tessst");
-			write_file(fileName!, diffTxt!);
-			button!.text = "$(check) Done";
-
-        // vscode.commands.executeCommand('workbench.action.closeActiveEditor', { force: true });
-
-        // editor.edit((editBuilder) => {
-        //     editBuilder.replace(editor.selection, text);
-        // });
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-		// write_file(fileName!, diffTxt!);
-		close_opened_diffs();
-
-        // vscode.window.visibleTextEditors.forEach(editor => {
-        //   console.log(editor.document.uri.toString());
-        //     if (editor.document.uri.toString() === editorDocUri) {
-        //       console.log("aici2");
-        //       editor.edit(editBuilder => {
-        //         editBuilder.replace(editor.selection, text);
-        //       });
-        //     }
-        //   });
-    }
-    });
+			writeToFile(fileName!, diffTxt!);
+			actionButton!.text = "$(check) Done";
+			closeDiff();
+		}
+	});
 
 	let disposable = vscode.commands.registerCommand('chatgpt-code-analyzer.helloWorld', async () => {
-		button!.text = "";
+		actionButton!.text = "";
 		loadingButton!.text = "$(loading) Generating diff";
 		loadingButton!.show();
 
@@ -170,29 +129,31 @@ export function activate(context: vscode.ExtensionContext) {
 			const document = editor.document;
 			const selection = editor.selection;
 			const language = vscode.window.activeTextEditor?.document.languageId!;
+
+            // TODO: remove log
 			console.log(language);
 
-			let fixCode : string = await check_code(caller, document.getText(selection), language);
+			let fixCode: string = await checkCode(caller, document.getText(selection), language);
 			fixCode = fixCode.toString().replaceAll("`", "");
 			fixCode = fixCode.toString().replace(language, "");
 
-			const p = path.join(path.dirname(document.uri.path), "tmp.txt");
-			dstUri = vscode.Uri.file(p);
+			const filePath = path.join(path.dirname(document.uri.path), ".tmp");
+			dstUri = vscode.Uri.file(filePath);
 			diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
 			fileName = document.uri;
 
 			loadingButton!.text = "$(check) Diff generated";
-			button!.text = '$(pencil) Replace Selection';
-			button!.show();
+			actionButton!.text = '$(pencil) Replace Selection';
+			actionButton!.show();
 
 			loadingButton!.text = "$(check) Diff generated";
-			button!.text = '$(pencil) Replace Selection';
-			button!.show();
+			actionButton!.text = '$(pencil) Replace Selection';
+			actionButton!.show();
 
-			await write_file(dstUri!, diffTxt);
-			dstUri = vscode.Uri.file(p);
-            vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF'); 	
-        }
+			await writeToFile(dstUri!, diffTxt);
+			dstUri = vscode.Uri.file(filePath);
+			vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+		}
 	});
 
 	context.subscriptions.push(disposable);
