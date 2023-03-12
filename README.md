@@ -22,8 +22,9 @@ comments to selected code.
 or just see the suggestions in the output (for `ChatGPT Find Bugs` and
 `ChatGPT Find Complexity`).
 
-![](https://imgur.com/B5CyOrI)
-![](https://imgur.com/cDjwvGY)
+![output-demo](img/demo_bugs_and_complexity.mov)
+![suggest-demo](https://imgur.com/cDjwvGY)
+<blockquote class="imgur-embed-pub" lang="en" data-id="a/Qmq7ufv" data-context="false" ><a href="//imgur.com/a/Qmq7ufv"></a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
 
 ---
 
