@@ -3,8 +3,10 @@
 1. Open terminal.
 2. Write `npm install`.
 3. Run extension with `F5`.
-4. Create a new file with some text in it.
-5. Run the extension: `Ctrl + Shift + P`, type `Hello world`, enter.
+4. Open workspace.
+5. Select code (preferably a function) and run the extension: `Ctrl + Shift + P`, type `Hello world`, enter.
+6. Click on 'Replace selection'.
+7. If you want to undo, `Ctrl + Z`.
 
 TODOs:
 - [ ] Format code after replace (ideally, suggest already formatted - correctly indented)
