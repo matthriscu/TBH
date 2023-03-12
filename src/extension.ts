@@ -83,7 +83,7 @@ async function optimize(caller: GptCaller, code: string): Promise<string> {
 }
 
 async function add_comments(caller: GptCaller, code: string, language: string): Promise<string> {
-	const res = await caller.askChatGPT("Could you add proper comments to the corrected code above? And also add types to parameters")
+	const res = await caller.askChatGPT("Could you add proper comments to the corrected code above? It's written in" + language + ".Please also add types to parameters")
 	const regex = /```([\s\S]*?)```/g;
 	const markdown_code = res.match(regex);
 	return markdown_code;
@@ -97,11 +97,11 @@ async function check_code(caller: GptCaller, code: string, language: string) {
 
 	let response1 = await find_bugs(caller, code, language);
 
-	for (let i = 0; i < 1; ++i) {
-		response1 = await add_comments(caller, response1, language);
-	}
+	// for (let i = 0; i < 1; ++i) {
+	// 	response1 = await add_comments(caller, response1, language);
+	// }
 
-	const response2 = await add_comments(caller, response1, language);
+	const response2 = await add_comments(caller, code, language);
 	// const response3 = await find_complexity(caller, response2)
 	return response2;
 }
@@ -174,7 +174,8 @@ export function activate(context: vscode.ExtensionContext) {
 			fixCode = fixCode.toString().replaceAll("`", "");
 			fixCode = fixCode.toString().replace(language, "");
 
-			dstUri = vscode.Uri.file(path.join(path.dirname(document.uri.path), "tmp.txt"));
+			const p = path.join(path.dirname(document.uri.path), "tmp.txt");
+			dstUri = vscode.Uri.file(p);
 			diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
 			fileName = document.uri;
 
@@ -187,7 +188,7 @@ export function activate(context: vscode.ExtensionContext) {
 			button!.show();
 
 			await write_file(dstUri!, diffTxt);
-			dstUri = (await vscode.workspace.openTextDocument(path.join(path.dirname(document.uri.path), "tmp.txt"))).uri;
+			dstUri = vscode.Uri.file(p);
             vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF'); 	
         }
 	});
