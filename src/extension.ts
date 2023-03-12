@@ -18,11 +18,7 @@ async function closeDiff() {
 };
 
 async function writeToFile(fileName: vscode.Uri, content: string) {
-    await vscode.workspace.fs.writeFile(fileName, new TextEncoder().encode(content)).then(() => {
-        vscode.window.showInformationMessage(`File created: ${fileName}`);
-    }, (err) => {
-        vscode.window.showErrorMessage(`Failed to create file: ${err.message}`);
-    });
+    await vscode.workspace.fs.writeFile(fileName, new TextEncoder().encode(content));
 }
 
 class GptCaller {
