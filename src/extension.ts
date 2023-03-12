@@ -13,8 +13,11 @@ let loadingButton: vscode.StatusBarItem | undefined;
 let actionButton: vscode.StatusBarItem | undefined;
 
 async function closeDiff() {
-    await vscode.workspace.fs.copy(fileName!, dstUri!, { overwrite: true });
-    await vscode.workspace.fs.delete(dstUri!);
+    await vscode.workspace.openTextDocument(dstUri!);
+    await vscode.window.showTextDocument(dstUri!);
+	await vscode.workspace.fs.readFile(dstUri!)
+        .then(sourceData => vscode.workspace.fs.writeFile(fileName!, sourceData!));
+	await vscode.workspace.fs.delete(dstUri!);
 };
 
 async function writeToFile(fileName: vscode.Uri, content: string) {
@@ -181,7 +184,7 @@ export function activate(context: vscode.ExtensionContext) {
             fixCode = fixCode.toString().replaceAll("`", "");
             fixCode = fixCode.toString().replace(language, "");
 
-            const filePath = path.join(path.dirname(document.uri.path), ".tmp");
+            const filePath = path.join(path.dirname(document.uri.path), (Math.random().toString(36).slice(2) + "." + language));
             dstUri = vscode.Uri.file(filePath);
             diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
             fileName = document.uri;
@@ -302,7 +305,7 @@ export function activate(context: vscode.ExtensionContext) {
             console.log("You need to provide an API Key");
         }
 
-        const editor = vscode.window.activeTextEditor;
+        let editor = vscode.window.activeTextEditor;
         if (editor) {
             const caller = new GptCaller(apiKey);
             const document = editor.document;
@@ -315,7 +318,7 @@ export function activate(context: vscode.ExtensionContext) {
             fixCode = fixCode.toString().replaceAll("`", "");
             fixCode = fixCode.toString().replace(language, "");
 
-            const filePath = path.join(path.dirname(document.uri.path), ".tmp");
+            const filePath = path.join(path.dirname(document.uri.path), (Math.random().toString(36).slice(2) + "." + language));
             dstUri = vscode.Uri.file(filePath);
             diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
             fileName = document.uri;
@@ -326,6 +329,20 @@ export function activate(context: vscode.ExtensionContext) {
             await writeToFile(dstUri!, diffTxt);
             dstUri = vscode.Uri.file(filePath);
             vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+
+            let tmpDoc = (await (vscode.workspace.openTextDocument(filePath)));
+			await vscode.window.showTextDocument(tmpDoc);
+			
+			let indexStart: number = diffTxt.indexOf(fixCode);
+			let indexEnd: number = indexStart + fixCode.length;
+
+			editor = vscode.window.activeTextEditor;
+			editor!.selection = new vscode.Selection(tmpDoc.positionAt(indexStart), tmpDoc.positionAt(indexEnd));
+			await vscode.commands.executeCommand('editor.action.formatSelection');
+			await tmpDoc.save();
+			dstUri = vscode.Uri.file(filePath);
+			vscode.commands.executeCommand("vscode.diff", fileName, dstUri, 'DIFF');
+	
         }
     });
 
