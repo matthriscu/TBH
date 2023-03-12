@@ -25,6 +25,16 @@ or just see the suggestions in the output (for `ChatGPT Find Bugs` and
 ![](https://imgur.com/B5CyOrI)
 ![](https://imgur.com/cDjwvGY)
 
+### Alternatively
+
+If the Marketplace extension is not working please try it out locally by cloning
+the [Github repository](https://github.com/matthriscu/TBH/tree/main). Run the
+extension using the following commands:
+
+1. Run `npm install` in the terminal.
+2. Run `F5` in the workspace.
+3. Follow the above instructions from point 2.
+
 ---
 
 ## Known Issues
