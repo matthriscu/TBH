@@ -14,7 +14,8 @@ let loadingButton: vscode.StatusBarItem | undefined;
 let button: vscode.StatusBarItem | undefined;
 
 async function close_opened_diffs() {
-	vscode.workspace.fs.delete(dstUri!);
+	await vscode.workspace.fs.copy(fileName!, dstUri!, { overwrite: true });
+	await vscode.workspace.fs.delete(dstUri!);
 };
 
 async function write_file(fileName : vscode.Uri, content: string) {
@@ -137,7 +138,8 @@ export function activate(context: vscode.ExtensionContext) {
         // editor.edit((editBuilder) => {
         //     editBuilder.replace(editor.selection, text);
         // });
-		write_file(fileName!, diffTxt!);
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+		// write_file(fileName!, diffTxt!);
 		close_opened_diffs();
 
         // vscode.window.visibleTextEditors.forEach(editor => {
