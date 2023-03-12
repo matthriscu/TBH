@@ -15,19 +15,19 @@
     "commands": [
       {
         "command": "chatgpt-code-analyzer.addComments",
-        "title": "Chat GPT Add Comments"
+        "title": "ChatGPT Add Comments"
       },
       {
         "command": "chatgpt-code-analyzer.findBugs",
-        "title": "Chat GPT Find Bugs"
+        "title": "ChatGPT Find Bugs"
       },
       {
         "command": "chatgpt-code-analyzer.findComplexity",
-        "title": "Chat GPT Find Complexity"
+        "title": "ChatGPT Find Complexity"
       },
       {
         "command": "chatgpt-code-analyzer.optimize",
-        "title": "Chat GPT Optimize"
+        "title": "ChatGPT Optimize"
       }
     ],
     "keybindings" : [
