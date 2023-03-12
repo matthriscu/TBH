@@ -6,8 +6,8 @@ TODOs:
 - [x] Change `Generate diff` loading button to pop-up
 - [x] Write README
 - [ ] Deploy to Marketplace
-- [ ] Make it run faster
-    - [ ] Make prompts smaller
+- [x] Make it run faster
+    - [x] Make prompts smaller
 - [ ] Use more provided technologies
 - [ ] Comment source code
 
@@ -62,11 +62,19 @@ or just see the suggestions in the output (for `ChatGPT Find Bugs` and
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+This section contains notes from major releases.
 
 ### 1.0.0
 
-Initial release of ...
+Initial release of ChatGPT Analyzer extension. Provides four major features:
+
+- comment suggestions for code selection
+
+- optimization suggestions for code selection
+
+- bug analysis
+
+- complexity analysis
 
 ---
 
