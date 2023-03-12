@@ -10,19 +10,27 @@ let diffTxt: string | undefined;
 let dstUri: vscode.Uri | undefined;
 let fileName: vscode.Uri | undefined;
 let loadingButton: vscode.StatusBarItem | undefined;
-let actionButton: vscode.StatusBarItem | undefined;
+let acceptButton: vscode.StatusBarItem | undefined;
+let rejectButton: vscode.StatusBarItem | undefined;
 
-async function closeDiff() {
+async function changeDiff() {
     await vscode.workspace.openTextDocument(dstUri!);
     await vscode.window.showTextDocument(dstUri!);
 	await vscode.workspace.fs.readFile(dstUri!)
         .then(sourceData => vscode.workspace.fs.writeFile(fileName!, sourceData!));
+}
+
+async function closeDiff() {
 	await vscode.workspace.fs.delete(dstUri!);
 };
 
 async function writeToFile(fileName: vscode.Uri, content: string) {
     await vscode.workspace.fs.writeFile(fileName, new TextEncoder().encode(content));
 }
+
+// ------------------------------------
+// ChatGPT integration
+// ------------------------------------
 
 class GptCaller {
     openai: typeof OpenAIApi;
@@ -97,6 +105,10 @@ async function optimize(caller: GptCaller, code: string, language: string): Prom
         " markdown code block.");
 }
 
+// ------------------------------------
+// VSCode integration
+// ------------------------------------
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -105,17 +117,33 @@ export function activate(context: vscode.ExtensionContext) {
     if (loadingButton === undefined) {
 		loadingButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
 	}
-    if (actionButton === undefined) {
-        actionButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
-        actionButton.tooltip = 'Replace the selected text in the active editor';
-        actionButton.command = 'extension.replaceSelection';
+    if (acceptButton === undefined) {
+        acceptButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+        acceptButton.tooltip = 'Replace the selected text in the active editor';
+        acceptButton.command = 'extension.acceptSuggestion';
+    }
+    if (rejectButton === undefined) {
+        rejectButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+        rejectButton.tooltip = 'Ignore suggestions';
+        rejectButton.command = 'extension.ignoreSuggestion';
     }
 
-    vscode.commands.registerCommand('extension.replaceSelection', () => {
+    vscode.commands.registerCommand('extension.acceptSuggestion', () => {
         const editor = vscode.window.activeTextEditor;
         if (editor) {
             writeToFile(fileName!, diffTxt!);
-            actionButton!.text = "$(check) Done";
+            acceptButton!.text = "$(check) Done";
+            rejectButton!.text = "";
+            changeDiff();
+            closeDiff();
+        }
+    });
+
+    vscode.commands.registerCommand('extension.ignoreSuggestion', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            rejectButton!.text = "$(check) Done";
+            acceptButton!.text = "";
             closeDiff();
         }
     });
@@ -164,7 +192,8 @@ export function activate(context: vscode.ExtensionContext) {
             return p;
         });
 
-        actionButton!.text = "";
+        acceptButton!.text = "";
+        rejectButton!.text = "";
 
         let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
         if (apiKey === "") {
@@ -189,8 +218,10 @@ export function activate(context: vscode.ExtensionContext) {
             diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
             fileName = document.uri;
 
-            actionButton!.text = '$(pencil) Replace Selection';
-            actionButton!.show();
+            acceptButton!.text = '$(pencil) Accept suggestions';
+            acceptButton!.show();
+            rejectButton!.text = '$(pencil) Ignore suggestions';
+            rejectButton!.show();
 
             await writeToFile(dstUri!, diffTxt);
             dstUri = vscode.Uri.file(filePath);
@@ -199,7 +230,8 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     let bugsDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.findBugs', async () => {
-        actionButton!.text = "";
+        acceptButton!.text = "";
+        rejectButton!.text = "";
         loadingButton!.text = "$(loading) Generating output";
 		loadingButton!.show();
 
@@ -227,7 +259,8 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     let complexityDisposable = vscode.commands.registerCommand('chatgpt-code-analyzer.findComplexity', async () => {
-        actionButton!.text = "";
+        acceptButton!.text = "";
+        rejectButton!.text = "";
         loadingButton!.text = "$(loading) Generating output";
 		loadingButton!.show();
 
@@ -298,7 +331,8 @@ export function activate(context: vscode.ExtensionContext) {
             return p;
         });
 
-        actionButton!.text = "";
+        acceptButton!.text = "";
+        rejectButton!.text = "";
 
         let apiKey: string = vscode.workspace.getConfiguration().get("chat-gpt")!;
         if (apiKey === "") {
@@ -323,8 +357,10 @@ export function activate(context: vscode.ExtensionContext) {
             diffTxt = document.getText().replace(document.getText(selection).toString(), fixCode);
             fileName = document.uri;
 
-            actionButton!.text = '$(pencil) Replace Selection';
-            actionButton!.show();
+            acceptButton!.text = '$(pencil) Accept Suggestions';
+            acceptButton!.show();
+            rejectButton!.text = '$(pencil) Ignore Suggestions';
+            rejectButton!.show();
 
             await writeToFile(dstUri!, diffTxt);
             dstUri = vscode.Uri.file(filePath);
